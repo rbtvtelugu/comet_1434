@@ -479,13 +479,13 @@ async def playback(request: Request, b64config: str, hash: str, index: str):
                 },
             )
 
-        useProxyStream = (
+        use_proxy_stream = (
             settings.PROXY_DEBRID_STREAM
             and settings.PROXY_DEBRID_STREAM_PASSWORD
             == config["debridStreamProxyPassword"]
         )
         # If NOT proxying, just redirect to the download link.
-        if not useProxyStream: 
+        if not use_proxy_stream: 
           return RedirectResponse(download_link, status_code=302)
 
         # Proxy the request.
