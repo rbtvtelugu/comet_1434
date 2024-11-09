@@ -30,7 +30,7 @@ class SearchResult:
 
     async def fetch_hash(self, session: aiohttp.ClientSession):
         if self.info_hash is not None:
-            return self.info_hash
+            return
 
         try:
             timeout = aiohttp.ClientTimeout(total=settings.GET_TORRENT_TIMEOUT)
@@ -53,9 +53,9 @@ class SearchResult:
 
                 hash = match.group(1).upper()
 
-            return hash.lower()
+            self.info_hash = hash.lower()
         except Exception as e:
             logger.warning(
                 f"Exception while getting torrent info hash for {self.tracker}|<<url>>: {e}"
             )
-            return None
+            return
