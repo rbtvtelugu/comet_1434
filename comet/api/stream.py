@@ -24,7 +24,6 @@ from comet.utils.general import (
     get_indexer_manager,
     get_zilean,
     get_torrentio,
-    get_torrent_hash,
     translate,
     get_balanced_hashes,
     format_title,

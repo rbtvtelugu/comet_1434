@@ -419,42 +419,6 @@ async def get_torrentio(log_name: str, type: str, full_id: str):
     return results
 
 
-async def get_torrent_hash(session: aiohttp.ClientSession, torrent: tuple):
-    index = torrent[0]
-    torrent = torrent[1]
-    if "InfoHash" in torrent and torrent["InfoHash"] is not None:
-        return (index, torrent["InfoHash"].lower())
-
-    url = torrent["Link"]
-
-    try:
-        timeout = aiohttp.ClientTimeout(total=settings.GET_TORRENT_TIMEOUT)
-        response = await session.get(url, allow_redirects=False, timeout=timeout)
-        if response.status == 200:
-            torrent_data = await response.read()
-            torrent_dict = bencodepy.decode(torrent_data)
-            info = bencodepy.encode(torrent_dict[b"info"])
-            hash = hashlib.sha1(info).hexdigest()
-        else:
-            location = response.headers.get("Location", "")
-            if not location:
-                return (index, None)
-
-            match = info_hash_pattern.search(location)
-            if not match:
-                return (index, None)
-
-            hash = match.group(1).upper()
-
-        return (index, hash.lower())
-    except Exception as e:
-        logger.warning(
-            f"Exception while getting torrent info hash for {torrent['indexer'] if 'indexer' in torrent else (torrent['Tracker'] if 'Tracker' in torrent else '')}|{url}: {e}"
-        )
-
-        return (index, None)
-
-
 def get_balanced_hashes(hashes: dict, config: dict):
     max_results = config["maxResults"]
 
