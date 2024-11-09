@@ -429,7 +429,6 @@ async def playback(request: Request, b64config: str, hash: str, index: str):
     if not config:
         return FileResponse("comet/assets/invalidconfig.mp4")
 
-
     if (
         settings.PROXY_DEBRID_STREAM
         and settings.PROXY_DEBRID_STREAM_PASSWORD == config["debridStreamProxyPassword"]
@@ -439,7 +438,6 @@ async def playback(request: Request, b64config: str, hash: str, index: str):
         config["debridApiKey"] = settings.PROXY_DEBRID_STREAM_DEBRID_DEFAULT_APIKEY
 
     async with aiohttp.ClientSession() as session:
-
         # Check for cached download link
         cached_link = await database.fetch_one(
             f"SELECT link, timestamp FROM download_links WHERE debrid_key = '{config['debridApiKey']}' AND hash = '{hash}' AND file_index = '{index}'"
@@ -481,6 +479,11 @@ async def playback(request: Request, b64config: str, hash: str, index: str):
                 },
             )
 
+        useProxyStream = (
+            settings.PROXY_DEBRID_STREAM
+            and settings.PROXY_DEBRID_STREAM_PASSWORD
+            == config["debridStreamProxyPassword"]
+        )
         # If NOT proxying, just redirect to the download link.
         if not useProxyStream: 
           return RedirectResponse(download_link, status_code=302)
@@ -489,7 +492,6 @@ async def playback(request: Request, b64config: str, hash: str, index: str):
         active_ip_connections = await database.fetch_all(
             "SELECT ip, COUNT(*) as connections FROM active_connections GROUP BY ip"
         )
-        # sus...? Why not WHERE ip == get_client_ip?
         if any(
             connection["ip"] == ip
             and connection["connections"]

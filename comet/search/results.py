@@ -34,9 +34,7 @@ class SearchResult:
 
         try:
             timeout = aiohttp.ClientTimeout(total=settings.GET_TORRENT_TIMEOUT)
-            logger.info("req")
             response = await session.get(self.link, allow_redirects=False, timeout=timeout)
-            logger.info("resp")
             if response.status == 200:
                 torrent_data = await response.read()
                 torrent_dict = bencodepy.decode(torrent_data)
