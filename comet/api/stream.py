@@ -285,16 +285,12 @@ async def stream(request: Request, b64config: str, type: str, id: str):
         else:
             return stream_lookup_error("No streams found!")
 
+        async with asyncio.TaskGroup() as tg:
+            for result in torrents:
+                # fetch_hash populates info_hash in result, if it's missing.
+                tg.create_task(result.fetch_hash(session))
+
         results_with_hashes = [torrent for torrent in torrents if torrent.info_hash is not None]
-
-        # Only fetch hashes if we don't have any (since it's slow)
-        if len(results_with_hashes) == 0:
-            async with asyncio.TaskGroup() as tg:
-                for result in torrents:
-                    # fetch_hash populates the hash in result.
-                    tg.create_task(result.fetch_hash(session))
-
-            results_with_hashes = [torrent for torrent in torrents if torrent.info_hash is not None]
 
         logger.info(f"{len(results_with_hashes)} info hashes found for {log_name}")
 
