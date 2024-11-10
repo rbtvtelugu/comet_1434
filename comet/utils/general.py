@@ -13,6 +13,7 @@ from fastapi import Request
 
 from comet.utils.logger import logger
 from comet.utils.models import settings, ConfigModel
+from comet.search.results import SearchResult
 
 languages_emojis = {
     "multi": "🌎",  # Dubbed
@@ -307,7 +308,13 @@ async def get_indexer_manager(
             all_results = await asyncio.gather(*tasks)
 
             for result_set in all_results:
-                results.extend(result_set)
+                for result in result_set:
+                    results.append(SearchResult(
+                        title=result["Title"],
+                        info_hash=result["InfoHash"],
+                        tracker=result["Tracker"],
+                        size=result["Size"],
+                        link=result["Link"]))
 
         elif indexer_manager_type == "prowlarr":
             get_indexers = await session.get(
@@ -331,17 +338,12 @@ async def get_indexer_manager(
             response = await response.json()
 
             for result in response:
-                result["InfoHash"] = (
-                    result["infoHash"] if "infoHash" in result else None
-                )
-                result["Title"] = result["title"]
-                result["Size"] = result["size"]
-                result["Link"] = (
-                    result["downloadUrl"] if "downloadUrl" in result else None
-                )
-                result["Tracker"] = result["indexer"]
-
-                results.append(result)
+                results.append(SearchResult(
+                    title=result["title"],
+                    info_hash=result["infoHash"] if "infoHash" in result else None,
+                    tracker=result["indexer"],
+                    size=result["size"],
+                    link=result["downloadUrl"] if "downloadUrl" in result else None))
     except Exception as e:
         logger.warning(
             f"Exception while getting {indexer_manager_type} results for {query} with {indexers}: {e}"
@@ -365,14 +367,11 @@ async def get_zilean(
         if isinstance(get_dmm, list):
             take_first = get_dmm[: settings.ZILEAN_TAKE_FIRST]
             for result in take_first:
-                object = {
-                    "Title": result["raw_title"],
-                    "InfoHash": result["info_hash"],
-                    "Size": result["size"],
-                    "Tracker": "DMM",
-                }
-
-                results.append(object)
+                results.append(SearchResult(
+                    title=result["raw_title"],
+                    info_hash=result["info_hash"],
+                    tracker="DMM",
+                    size=result["size"]))
 
         logger.info(f"{len(results)} torrents found for {log_name} with Zilean")
     except Exception as e:
@@ -405,14 +404,10 @@ async def get_torrentio(log_name: str, type: str, full_id: str):
             title_full = title.split("\n👤")[0]
             tracker = title.split("⚙️ ")[1].split("\n")[0]
 
-            results.append(
-                {
-                    "Title": title_full,
-                    "InfoHash": torrent["infoHash"],
-                    "Size": None,
-                    "Tracker": f"Torrentio|{tracker}",
-                }
-            )
+            results.append(SearchResult(
+                title=torrent["title"].split("\n👤")[0],
+                info_hash=torrent["infoHash"],
+                tracker=f"Torrentio|{tracker}"))
 
         logger.info(f"{len(results)} torrents found for {log_name} with Torrentio")
     except Exception as e:
@@ -422,66 +417,6 @@ async def get_torrentio(log_name: str, type: str, full_id: str):
         pass
 
     return results
-
-
-async def filter(torrents: list, name: str, year: int):
-    results = []
-    for torrent in torrents:
-        index = torrent[0]
-        title = torrent[1]
-
-        if "\n" in title:  # Torrentio title parsing
-            title = title.split("\n")[1]
-
-        parsed = parse(title)
-
-        if parsed.parsed_title and not title_match(name, parsed.parsed_title):
-            results.append((index, False))
-            continue
-
-        if year and parsed.year and year != parsed.year:
-            results.append((index, False))
-            continue
-
-        results.append((index, True))
-
-    return results
-
-
-async def get_torrent_hash(session: aiohttp.ClientSession, torrent: tuple):
-    index = torrent[0]
-    torrent = torrent[1]
-    if "InfoHash" in torrent and torrent["InfoHash"] is not None:
-        return (index, torrent["InfoHash"].lower())
-
-    url = torrent["Link"]
-
-    try:
-        timeout = aiohttp.ClientTimeout(total=settings.GET_TORRENT_TIMEOUT)
-        response = await session.get(url, allow_redirects=False, timeout=timeout)
-        if response.status == 200:
-            torrent_data = await response.read()
-            torrent_dict = bencodepy.decode(torrent_data)
-            info = bencodepy.encode(torrent_dict[b"info"])
-            hash = hashlib.sha1(info).hexdigest()
-        else:
-            location = response.headers.get("Location", "")
-            if not location:
-                return (index, None)
-
-            match = info_hash_pattern.search(location)
-            if not match:
-                return (index, None)
-
-            hash = match.group(1).upper()
-
-        return (index, hash.lower())
-    except Exception as e:
-        logger.warning(
-            f"Exception while getting torrent info hash for {torrent['indexer'] if 'indexer' in torrent else (torrent['Tracker'] if 'Tracker' in torrent else '')}|{url}: {e}"
-        )
-
-        return (index, None)
 
 
 def get_balanced_hashes(hashes: dict, config: dict):
