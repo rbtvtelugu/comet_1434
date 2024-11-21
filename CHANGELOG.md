@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.44.0](https://github.com/g0ldyy/comet/compare/v1.43.4...v1.44.0) (2024-11-21)
+
+
+### Features
+
+* new db structure ([8c3a81a](https://github.com/g0ldyy/comet/commit/8c3a81a61fb9f0195c7edd67efcd577dfc2cf458))
+
 ## [1.43.4](https://github.com/g0ldyy/comet/compare/v1.43.3...v1.43.4) (2024-11-21)
 
 
