@@ -549,7 +549,7 @@ async def active_connections(request: Request, password: str):
 
 @streams.get("/{b64config}/playback/{hash}/{index}")
 async def playback(request: Request, b64config: str, hash: str, index: str):
-    config = config_check('eyJpbmRleGVycyI6WyJiaXRzZWFyY2giLCJ5dHMiLCJlenR2IiwidGhlcGlyYXRlYmF5IiwidGhlcmFyYmciXSwibWF4UmVzdWx0cyI6MCwibWF4U2l6ZSI6MCwicmVzdWx0Rm9ybWF0IjpbIkFsbCJdLCJyZXNvbHV0aW9ucyI6WyJBbGwiXSwibGFuZ3VhZ2VzIjpbIkFsbCJdLCJkZWJyaWRTZXJ2aWNlIjoicmVhbGRlYnJpZCIsImRlYnJpZEFwaUtleSI6IlZZQ0hIR09YNEc0U1dQVE5XM0RXSFNJWUJGWFdCVVRXQTRCSEIzSFJFQkNQSDJPVTMyV1EiLCJkZWJyaWRTdHJlYW1Qcm94eVBhc3N3b3JkIjoicnJEREAwMDEifQ==')
+    config = config_check('eyJpbmRleGVycyI6WyJiaXRzZWFyY2giLCJ5dHMiLCJlenR2IiwidGhlcGlyYXRlYmF5IiwidGhlcmFyYmciXSwibWF4UmVzdWx0cyI6MCwibWF4UmVzdWx0c1BlclJlc29sdXRpb24iOjAsIm1heFNpemUiOjEwNzM3NDE4MjQwLCJyZXZlcnNlUmVzdWx0T3JkZXIiOmZhbHNlLCJyZW1vdmVUcmFzaCI6dHJ1ZSwicmVzdWx0Rm9ybWF0IjpbIkFsbCJdLCJyZXNvbHV0aW9ucyI6WyJBbGwiXSwibGFuZ3VhZ2VzIjpbIkFsbCJdLCJkZWJyaWRTZXJ2aWNlIjoiYWxsZGVicmlkIiwiZGVicmlkQXBpS2V5IjoiYndSTWR3eUY1ZGE2c20yb3EyN1giLCJkZWJyaWRTdHJlYW1Qcm94eVBhc3N3b3JkIjoicnJEREAwMDEifQ==')
     if not config:
         return FileResponse("comet/assets/invalidconfig.mp4")
 
