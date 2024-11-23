@@ -549,9 +549,12 @@ async def active_connections(request: Request, password: str):
 
 @streams.get("/{b64config}/playback/{hash}/{index}")
 async def playback(request: Request, b64config: str, hash: str, index: str):
-    config = config_check(b64config)
+    config = config_check('eyJpbmRleGVycyI6WyJiaXRzZWFyY2giLCJ5dHMiLCJlenR2IiwidGhlcGlyYXRlYmF5IiwidGhlcmFyYmciXSwibWF4UmVzdWx0cyI6MCwibWF4U2l6ZSI6MCwicmVzdWx0Rm9ybWF0IjpbIkFsbCJdLCJyZXNvbHV0aW9ucyI6WyJBbGwiXSwibGFuZ3VhZ2VzIjpbIkFsbCJdLCJkZWJyaWRTZXJ2aWNlIjoicmVhbGRlYnJpZCIsImRlYnJpZEFwaUtleSI6IlZZQ0hIR09YNEc0U1dQVE5XM0RXSFNJWUJGWFdCVVRXQTRCSEIzSFJFQkNQSDJPVTMyV1EiLCJkZWJyaWRTdHJlYW1Qcm94eVBhc3N3b3JkIjoicnJEREAwMDEifQ==')
     if not config:
         return FileResponse("comet/assets/invalidconfig.mp4")
+
+    if index == "undefined":
+        return FileResponse("comet/assets/uncached.mp4")
 
     if (
         settings.PROXY_DEBRID_STREAM
